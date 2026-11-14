@@ -264,6 +264,7 @@ export default function AdminPage() {
         setIsCustomCategory(false);
         setCustomCategoryName('');
         loadCourses();
+        window.dispatchEvent(new Event('categories-updated'));
       } else {
         const err = await res.json();
         alert(err.error || 'Có lỗi xảy ra khi tạo khóa học');
@@ -281,6 +282,7 @@ export default function AdminPage() {
       const res = await fetch(`/api/courses/${id}`, { method: 'DELETE' });
       if (res.ok) {
         loadCourses();
+        window.dispatchEvent(new Event('categories-updated'));
       }
     } catch (err) {
       // ignore

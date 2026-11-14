@@ -176,6 +176,7 @@ export default function EditCourseCurriculumPage() {
 
       if (res.ok) {
         setSaveSuccess(true);
+        window.dispatchEvent(new Event('categories-updated'));
         setTimeout(() => setSaveSuccess(false), 2500);
       }
     } catch (e) {
