@@ -112,12 +112,13 @@ docker compose logs -f db
 docker compose logs -f frontend
 ```
 
-> 🛠️ **Nếu bị lỗi `container coursefree_mysql is unhealthy`:**
-> 1. Xem nguyên nhân log MySQL: `docker compose logs db`
-> 2. Nếu dữ liệu kho volume bị lỗi do lần khởi động đầu tiên ngắt đột ngột, hãy xóa volume và khởi chạy lại từ đầu:
+> 🛠️ **Nếu bị lỗi `container coursefree_mysql is unhealthy` (hoặc `Fatal glibc error: CPU does not support x86-64-v2`):**
+> 1. Trên một số VPS ảo hóa KVM/QEMU, CPU ảo không bật tập lệnh `x86-64-v2` khiến image `mysql:8.0` (Oracle Linux 9) báo lỗi `Fatal glibc error: CPU does not support x86-64-v2`. Dự án đã dùng **`mysql:8.0-debian`** trong `docker-compose.yml` để tương thích 100% với mọi CPU VPS.
+> 2. Nếu đổi từ `mysql:8.0` sang `mysql:8.0-debian`, chạy lệnh sau để xóa volume lỗi và khởi động lại ngay:
 >    ```bash
+>    sed -i 's/image: mysql:8.0$/image: mysql:8.0-debian/g' docker-compose.yml
 >    docker compose down -v
->    docker compose up -d --build
+>    docker compose up -d
 >    ```
 
 ---
