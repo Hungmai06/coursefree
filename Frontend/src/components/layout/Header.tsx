@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
@@ -10,10 +10,13 @@ import {
   LogOut,
   X,
   AlertCircle,
+  CheckCircle2,
+  Gift,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { Button } from '../ui/Button';
 import { GoogleAuthButton } from '../auth/GoogleAuthButton';
+import { CHECKIN_STORAGE_KEY, getTodayDateString } from './DailyShopeePopup';
 
 export function Header() {
   const pathname = usePathname();
@@ -21,6 +24,17 @@ export function Header() {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showUserDropdown, setShowUserDropdown] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isCheckedInToday, setIsCheckedInToday] = useState(false);
+
+  useEffect(() => {
+    const checkStatus = () => {
+      const today = getTodayDateString();
+      setIsCheckedInToday(localStorage.getItem(CHECKIN_STORAGE_KEY) === today);
+    };
+    checkStatus();
+    window.addEventListener('daily-checkin-completed', checkStatus);
+    return () => window.removeEventListener('daily-checkin-completed', checkStatus);
+  }, [pathname]);
 
   return (
     <>
@@ -86,8 +100,31 @@ export function Header() {
           </form>
         </div>
 
-        {/* Right: Google Login Button or User Avatar */}
-        <div className="flex items-center gap-3">
+        {/* Right: Daily Check-in + Google Login Button or User Avatar */}
+        <div className="flex items-center gap-2.5">
+          <button
+            type="button"
+            onClick={() => window.dispatchEvent(new Event('preview-shopee-popup'))}
+            className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 border transition-all cursor-pointer ${
+              isCheckedInToday
+                ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
+                : 'bg-orange-50 text-[#EE4D2D] border-orange-200 hover:bg-orange-100 animate-pulse'
+            }`}
+            title="Điểm danh ủng hộ dự án mỗi ngày"
+          >
+            {isCheckedInToday ? (
+              <>
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                <span className="hidden sm:inline">Đã điểm danh hôm nay</span>
+              </>
+            ) : (
+              <>
+                <Gift className="w-3.5 h-3.5 text-[#EE4D2D] shrink-0" />
+                <span className="hidden sm:inline">Điểm danh hôm nay</span>
+              </>
+            )}
+          </button>
+
           {user ? (
             <div className="relative">
               <button

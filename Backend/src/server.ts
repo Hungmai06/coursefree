@@ -177,6 +177,12 @@ const SETTINGS_FILE = process.env.COMMUNITY_SETTINGS_PATH
   ? path.resolve(process.env.COMMUNITY_SETTINGS_PATH)
   : path.resolve(__dirname, '../community-settings.json');
 
+const DEFAULT_SHOPEE_URL = 'https://shopee.vn/search?keyword=s%C3%A1ch%20ti%E1%BA%BFng%20anh%20cho%20ng%C6%B0%E1%BB%9Di%20b%E1%BA%AFt%20%C4%91%E1%BA%A7u';
+const DEFAULT_SHOPEE_TITLE = 'Ủng Hộ Dự Án';
+const DEFAULT_SHOPEE_DESC =
+  'Để có thêm kinh phí duy trì máy chủ, vui lòng click ủng hộ chúng tôi tại link dưới đây! Không bắt buộc mua đâu nhé, chỉ cần click xem thôi là đã giúp đỡ Admin rất nhiều rồi ạ!';
+const DEFAULT_SHOPEE_BUTTON = '📖 Xem Sách Tiếng Anh Cho Người Bắt Đầu';
+
 function getCommunitySettings() {
   try {
     if (fs.existsSync(SETTINGS_FILE)) {
@@ -186,6 +192,22 @@ function getCommunitySettings() {
         zaloUrl: typeof parsed.zaloUrl === 'string' ? parsed.zaloUrl : '',
         telegramUrl: typeof parsed.telegramUrl === 'string' ? parsed.telegramUrl : '',
         communityTitle: parsed.communityTitle || 'Nhóm Cộng Đồng Share Khóa Học',
+        shopeePopupEnabled:
+          typeof parsed.shopeePopupEnabled === 'boolean' ? parsed.shopeePopupEnabled : true,
+        shopeeUrl:
+          typeof parsed.shopeeUrl === 'string' ? parsed.shopeeUrl : DEFAULT_SHOPEE_URL,
+        shopeePopupTitle:
+          typeof parsed.shopeePopupTitle === 'string' && parsed.shopeePopupTitle.trim()
+            ? parsed.shopeePopupTitle
+            : DEFAULT_SHOPEE_TITLE,
+        shopeePopupDesc:
+          typeof parsed.shopeePopupDesc === 'string' && parsed.shopeePopupDesc.trim()
+            ? parsed.shopeePopupDesc
+            : DEFAULT_SHOPEE_DESC,
+        shopeeButtonText:
+          typeof parsed.shopeeButtonText === 'string' && parsed.shopeeButtonText.trim()
+            ? parsed.shopeeButtonText
+            : DEFAULT_SHOPEE_BUTTON,
       };
     }
   } catch (e) {}
@@ -193,6 +215,11 @@ function getCommunitySettings() {
     zaloUrl: '',
     telegramUrl: '',
     communityTitle: 'Nhóm Cộng Đồng Share Khóa Học',
+    shopeePopupEnabled: true,
+    shopeeUrl: DEFAULT_SHOPEE_URL,
+    shopeePopupTitle: DEFAULT_SHOPEE_TITLE,
+    shopeePopupDesc: DEFAULT_SHOPEE_DESC,
+    shopeeButtonText: DEFAULT_SHOPEE_BUTTON,
   };
 }
 
@@ -201,10 +228,19 @@ app.get('/api/config/community', (req: Request, res: Response) => {
   return res.json(getCommunitySettings());
 });
 
-// PUT /api/config/community (Admin cập nhật link nhóm Zalo & Telegram)
+// PUT /api/config/community (Admin cập nhật link nhóm Zalo, Telegram & Popup Điểm Danh Shopee)
 app.put('/api/config/community', requireAdmin, (req: Request, res: Response) => {
   try {
-    const { zaloUrl, telegramUrl, communityTitle } = req.body;
+    const {
+      zaloUrl,
+      telegramUrl,
+      communityTitle,
+      shopeePopupEnabled,
+      shopeeUrl,
+      shopeePopupTitle,
+      shopeePopupDesc,
+      shopeeButtonText,
+    } = req.body;
     const current = getCommunitySettings();
 
     const updated = {
@@ -214,8 +250,27 @@ app.put('/api/config/community', requireAdmin, (req: Request, res: Response) => 
         typeof communityTitle === 'string' && communityTitle.trim()
           ? communityTitle.trim()
           : current.communityTitle,
+      shopeePopupEnabled:
+        typeof shopeePopupEnabled === 'boolean' ? shopeePopupEnabled : current.shopeePopupEnabled,
+      shopeeUrl: typeof shopeeUrl === 'string' ? shopeeUrl.trim() : current.shopeeUrl,
+      shopeePopupTitle:
+        typeof shopeePopupTitle === 'string' && shopeePopupTitle.trim()
+          ? shopeePopupTitle.trim()
+          : current.shopeePopupTitle,
+      shopeePopupDesc:
+        typeof shopeePopupDesc === 'string' && shopeePopupDesc.trim()
+          ? shopeePopupDesc.trim()
+          : current.shopeePopupDesc,
+      shopeeButtonText:
+        typeof shopeeButtonText === 'string' && shopeeButtonText.trim()
+          ? shopeeButtonText.trim()
+          : current.shopeeButtonText,
     };
 
+    const dir = path.dirname(SETTINGS_FILE);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
     fs.writeFileSync(SETTINGS_FILE, JSON.stringify(updated, null, 2), 'utf-8');
     return res.json({ success: true, ...updated });
   } catch (error: any) {

@@ -99,9 +99,20 @@ export default function AdminPage() {
   const [showPromptDetails, setShowPromptDetails] = useState(false);
   const [copiedPrompt, setCopiedPrompt] = useState(false);
 
-  // Community Links (Zalo & Telegram) state
+  // Community Links (Zalo & Telegram) & Shopee Daily Popup state
   const [zaloUrl, setZaloUrl] = useState('');
   const [telegramUrl, setTelegramUrl] = useState('');
+  const [shopeePopupEnabled, setShopeePopupEnabled] = useState(true);
+  const [shopeeUrl, setShopeeUrl] = useState(
+    'https://shopee.vn/search?keyword=s%C3%A1ch%20ti%E1%BA%BFng%20anh%20cho%20ng%C6%B0%E1%BB%9Di%20b%E1%BA%AFt%20%C4%91%E1%BA%A7u'
+  );
+  const [shopeePopupTitle, setShopeePopupTitle] = useState('Ủng Hộ Dự Án');
+  const [shopeePopupDesc, setShopeePopupDesc] = useState(
+    'Để có thêm kinh phí duy trì máy chủ, vui lòng click ủng hộ chúng tôi tại link dưới đây! Không bắt buộc mua đâu nhé, chỉ cần click xem thôi là đã giúp đỡ Admin rất nhiều rồi ạ!'
+  );
+  const [shopeeButtonText, setShopeeButtonText] = useState(
+    '📖 Xem Sách Tiếng Anh Cho Người Bắt Đầu'
+  );
   const [savingCommunity, setSavingCommunity] = useState(false);
   const [communitySaved, setCommunitySaved] = useState(false);
 
@@ -124,6 +135,15 @@ export default function AdminPage() {
         const data = await res.json();
         setZaloUrl(data.zaloUrl || '');
         setTelegramUrl(data.telegramUrl || '');
+        if (typeof data.shopeePopupEnabled === 'boolean') {
+          setShopeePopupEnabled(data.shopeePopupEnabled);
+        }
+        if (typeof data.shopeeUrl === 'string') {
+          setShopeeUrl(data.shopeeUrl);
+        }
+        if (data.shopeePopupTitle) setShopeePopupTitle(data.shopeePopupTitle);
+        if (data.shopeePopupDesc) setShopeePopupDesc(data.shopeePopupDesc);
+        if (data.shopeeButtonText) setShopeeButtonText(data.shopeeButtonText);
       }
     } catch (e) {}
   };
@@ -140,10 +160,19 @@ export default function AdminPage() {
       const res = await fetch('/api/config/community', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ zaloUrl, telegramUrl }),
+        body: JSON.stringify({
+          zaloUrl,
+          telegramUrl,
+          shopeePopupEnabled,
+          shopeeUrl,
+          shopeePopupTitle,
+          shopeePopupDesc,
+          shopeeButtonText,
+        }),
       });
       if (res.ok) {
         setCommunitySaved(true);
+        window.dispatchEvent(new Event('community-config-updated'));
         setTimeout(() => setCommunitySaved(false), 3000);
       }
     } catch (e) {
@@ -341,28 +370,108 @@ export default function AdminPage() {
         </Button>
       </div>
 
-      {/* Cấu hình Link Nhóm Cộng Đồng (Zalo & Telegram) */}
+      {/* Cấu hình Hệ Thống: Popup Điểm Danh Shopee & Link Cộng Đồng (Zalo & Telegram) */}
       <form
         onSubmit={handleSaveCommunity}
-        className="bg-white border border-slate-200 rounded-xl p-4 sm:p-5 shadow-xs space-y-3"
+        className="bg-white border border-slate-200 rounded-xl p-4 sm:p-5 shadow-xs space-y-4"
       >
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-slate-100">
           <div>
             <h2 className="text-sm font-bold text-slate-900">
-              Cài Đặt Link Cộng Đồng (Zalo & Telegram)
+              Cài Đặt Hệ Thống: Popup Điểm Danh Shopee & Link Cộng Đồng
             </h2>
             <p className="text-[11px] text-slate-500">
-              Hiển thị nút tham gia nhóm cộng đồng ở trang chủ (để trống nếu muốn ẩn kênh đó)
+              Thiết lập link Shopee điểm danh ủng hộ dự án mỗi ngày và nhóm Zalo/Telegram cộng đồng
             </p>
           </div>
           {communitySaved && (
             <span className="text-xs font-medium text-emerald-600 flex items-center gap-1 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-lg">
               <Check className="w-3.5 h-3.5" />
-              Đã lưu link cộng đồng!
+              Đã lưu cấu hình hệ thống!
             </span>
           )}
         </div>
 
+        {/* Cấu hình Popup Điểm Danh Shopee Hàng Ngày */}
+        <div className="p-3.5 rounded-xl bg-orange-50/50 border border-orange-200/80 space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <label className="inline-flex items-center gap-2 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={shopeePopupEnabled}
+                onChange={(e) => setShopeePopupEnabled(e.target.checked)}
+                className="w-4 h-4 rounded accent-[#EE4D2D] cursor-pointer"
+              />
+              <span className="text-xs font-bold text-slate-900">
+                Bật Popup Điểm Danh Shopee Mỗi Ngày (Ủng Hộ Dự Án)
+              </span>
+            </label>
+
+            <button
+              type="button"
+              onClick={() => window.dispatchEvent(new Event('preview-shopee-popup'))}
+              className="text-[11px] font-semibold text-[#EE4D2D] hover:underline cursor-pointer self-start sm:self-auto"
+            >
+              👁️ Xem thử Popup ngay
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <label className="text-[11px] font-semibold text-slate-700 block">
+                Link Shopee Điểm Danh (Sách Tiếng Anh / Affiliate) *
+              </label>
+              <input
+                type="text"
+                value={shopeeUrl}
+                onChange={(e) => setShopeeUrl(e.target.value)}
+                placeholder="https://s.shopee.vn/..."
+                className="w-full h-9 bg-white border border-slate-200 rounded-lg px-3 text-xs text-slate-900 focus:border-[#EE4D2D] outline-none"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-[11px] font-semibold text-slate-700 block">
+                Chữ hiển thị trên nút bấm Shopee
+              </label>
+              <input
+                type="text"
+                value={shopeeButtonText}
+                onChange={(e) => setShopeeButtonText(e.target.value)}
+                placeholder="📖 Xem Sách Tiếng Anh Cho Người Bắt Đầu"
+                className="w-full h-9 bg-white border border-slate-200 rounded-lg px-3 text-xs text-slate-900 focus:border-[#EE4D2D] outline-none"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-[11px] font-semibold text-slate-700 block">
+                Tiêu đề Popup
+              </label>
+              <input
+                type="text"
+                value={shopeePopupTitle}
+                onChange={(e) => setShopeePopupTitle(e.target.value)}
+                placeholder="Ủng Hộ Dự Án"
+                className="w-full h-9 bg-white border border-slate-200 rounded-lg px-3 text-xs text-slate-900 focus:border-[#EE4D2D] outline-none"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-[11px] font-semibold text-slate-700 block">
+                Nội dung lời nhắn trên Popup
+              </label>
+              <input
+                type="text"
+                value={shopeePopupDesc}
+                onChange={(e) => setShopeePopupDesc(e.target.value)}
+                placeholder="Để có thêm kinh phí duy trì máy chủ..."
+                className="w-full h-9 bg-white border border-slate-200 rounded-lg px-3 text-xs text-slate-900 focus:border-[#EE4D2D] outline-none"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Link nhóm Zalo & Telegram */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="space-y-1">
             <label className="text-[11px] font-semibold text-slate-700 flex items-center gap-1.5">
@@ -402,7 +511,7 @@ export default function AdminPage() {
             className="gap-1.5 text-xs font-semibold"
           >
             <Save className="w-3.5 h-3.5 text-blue-600" />
-            {savingCommunity ? 'Đang lưu...' : 'Lưu link cộng đồng'}
+            {savingCommunity ? 'Đang lưu...' : 'Lưu cài đặt hệ thống'}
           </Button>
         </div>
       </form>
