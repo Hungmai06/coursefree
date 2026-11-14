@@ -98,13 +98,13 @@ function CourseTreeNode({
   node,
   courseId,
   completedIds,
-  isLessonUnlocked,
+  onToggleComplete,
   depth = 0,
 }: {
   node: any;
   courseId: string;
   completedIds: Set<string>;
-  isLessonUnlocked: (id: string) => boolean;
+  onToggleComplete: (lessonId: string, nextCompleted: boolean) => void;
   depth?: number;
 }) {
   const [isFolderOpen, setIsFolderOpen] = useState(true);
@@ -145,7 +145,7 @@ function CourseTreeNode({
                 node={child}
                 courseId={courseId}
                 completedIds={completedIds}
-                isLessonUnlocked={isLessonUnlocked}
+                onToggleComplete={onToggleComplete}
                 depth={depth + 1}
               />
             ))}
@@ -155,9 +155,8 @@ function CourseTreeNode({
     );
   }
 
-  // 2. NẾU LÀ FILE (.mp4, .zip, .pdf hoặc bài học)
+  // 2. NẾU LÀ FILE (.mp4, .zip, .pdf hoặc bài học) - MỞ KHÓA TOÀN BỘ
   const isDone = completedIds.has(String(node.id));
-  const isUnlocked = isLessonUnlocked(String(node.id));
   const isExternal = node.url && !isVideoLink(node.url);
   const lowerTitle = (node.title || '').toLowerCase().trim();
   const isArchiveOrDoc = /\.(zip|rar|7z|tar|gz|pdf|docx|xlsx|doc|txt)$/i.test(lowerTitle);
@@ -166,76 +165,74 @@ function CourseTreeNode({
     <div
       className={`p-3 sm:p-3.5 rounded-xl border flex items-center justify-between gap-3 transition-all group ${
         isDone
-          ? 'bg-emerald-50/60 border-emerald-200'
-          : isUnlocked
-          ? 'bg-white hover:bg-slate-50 border-slate-200 hover:border-blue-300 shadow-xs'
-          : 'bg-slate-100/70 border-slate-200'
+          ? 'bg-emerald-50/90 border-emerald-300 shadow-2xs'
+          : 'bg-white hover:bg-slate-50 border-slate-200 hover:border-blue-300 shadow-xs'
       }`}
     >
       {/* Icon & Title */}
       <div className="flex items-center gap-3 min-w-0">
-        {isDone ? (
-          <div className="w-6 h-6 rounded-full bg-emerald-100 border border-emerald-300 flex items-center justify-center text-emerald-600 shrink-0">
-            <Check className="w-3.5 h-3.5 stroke-[2.5]" />
-          </div>
-        ) : isUnlocked ? (
-          isArchiveOrDoc ? (
-            <div className="w-6 h-6 rounded-full bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600 shrink-0">
-              <FileText className="w-3 h-3" />
-            </div>
-          ) : isExternal ? (
-            <div className="w-6 h-6 rounded-full bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600 shrink-0">
-              <ExternalLink className="w-3 h-3" />
-            </div>
-          ) : (
-            <div className="w-6 h-6 rounded-full bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600 shrink-0 group-hover:scale-105 transition-transform">
-              <Play className="w-2.5 h-2.5 fill-current ml-0.5" />
-            </div>
-          )
-        ) : (
-          <div className="w-6 h-6 rounded-full bg-slate-200/90 border border-slate-300 flex items-center justify-center text-slate-600 shrink-0">
-            <Lock className="w-3.5 h-3.5" />
-          </div>
-        )}
-
-        <span
-          className={`text-xs sm:text-sm font-medium truncate transition-colors ${
+        <button
+          type="button"
+          onClick={() => onToggleComplete(String(node.id), !isDone)}
+          title={isDone ? 'Bỏ đánh dấu hoàn thành' : 'Đánh dấu đã học xong'}
+          className={`w-6 h-6 rounded-full border flex items-center justify-center shrink-0 transition-all cursor-pointer ${
             isDone
-              ? 'text-slate-800'
-              : isUnlocked
-              ? 'text-slate-900 group-hover:text-blue-600'
-              : 'text-slate-700 font-medium'
+              ? 'bg-emerald-600 border-emerald-600 text-white shadow-2xs'
+              : 'bg-blue-50 border-blue-200 text-blue-600 hover:border-emerald-500 hover:bg-emerald-50 hover:text-emerald-600'
           }`}
         >
-          {node.title}
-        </span>
+          {isDone ? (
+            <Check className="w-3.5 h-3.5 stroke-[2.5]" />
+          ) : isArchiveOrDoc ? (
+            <FileText className="w-3 h-3" />
+          ) : isExternal ? (
+            <ExternalLink className="w-3 h-3" />
+          ) : (
+            <Play className="w-2.5 h-2.5 fill-current ml-0.5" />
+          )}
+        </button>
+
+        <Link href={`/watch/${courseId}/${node.id}`} className="min-w-0 flex-1">
+          <span
+            className={`text-xs sm:text-sm truncate block transition-colors ${
+              isDone
+                ? 'text-emerald-900 font-semibold'
+                : 'text-slate-900 font-medium group-hover:text-blue-600'
+            }`}
+          >
+            {node.title}
+          </span>
+        </Link>
       </div>
 
-      {/* Button Action: Đã học | Học Ngay ↗ | Khóa */}
+      {/* Button Action: Đánh dấu xanh + Vào học */}
       <div className="flex items-center gap-2 shrink-0">
-        {isDone ? (
-          <Link href={`/watch/${courseId}/${node.id}`}>
-            <span className="px-3.5 py-1.5 rounded-lg bg-emerald-100 hover:bg-emerald-200 text-emerald-800 border border-emerald-300 text-xs font-semibold flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer">
-              <Check className="w-3.5 h-3.5" />
-              <span>Đã học</span>
-            </span>
-          </Link>
-        ) : isUnlocked ? (
-          <Link href={`/watch/${courseId}/${node.id}`}>
-            <button className="px-3.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold flex items-center gap-1.5 shadow-xs transition-all hover:scale-105 cursor-pointer">
-              <span>Học Ngay</span>
-              <ExternalLink className="w-3.5 h-3.5" />
-            </button>
-          </Link>
-        ) : (
-          <span
-            className="px-3.5 py-1.5 rounded-lg bg-slate-200/90 text-slate-700 border border-slate-300 text-xs font-semibold flex items-center gap-1.5 cursor-not-allowed select-none shadow-2xs"
-            title="Vui lòng học xong bài trước để mở khóa bài này"
+        <button
+          type="button"
+          onClick={() => onToggleComplete(String(node.id), !isDone)}
+          className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 border transition-all cursor-pointer ${
+            isDone
+              ? 'bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-600 shadow-2xs'
+              : 'bg-slate-50 hover:bg-emerald-50 text-slate-600 hover:text-emerald-700 border-slate-200 hover:border-emerald-300'
+          }`}
+          title={isDone ? 'Bấm để bỏ đánh dấu' : 'Bấm để đánh dấu đã học (chuyển màu xanh)'}
+        >
+          <Check className="w-3.5 h-3.5" />
+          <span className="hidden sm:inline">{isDone ? 'Đã học' : 'Đánh dấu'}</span>
+        </button>
+
+        <Link href={`/watch/${courseId}/${node.id}`}>
+          <button
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow-xs transition-all hover:scale-105 cursor-pointer ${
+              isDone
+                ? 'bg-emerald-100 hover:bg-emerald-200 text-emerald-900 border border-emerald-300'
+                : 'bg-blue-600 hover:bg-blue-700 text-white'
+            }`}
           >
-            <Lock className="w-3.5 h-3.5 text-slate-500" />
-            <span>Khóa</span>
-          </span>
-        )}
+            <span>{isDone ? 'Xem lại' : 'Học Ngay'}</span>
+            <ExternalLink className="w-3.5 h-3.5" />
+          </button>
+        </Link>
       </div>
     </div>
   );
@@ -285,29 +282,49 @@ export default function CourseDetailPage() {
       .sort((a: any, b: any) => a.position - b.position);
   }, [course]);
 
-  // Tập hợp các ID bài học đã hoàn thành
-  const completedIds = useMemo(() => {
+  // Tập hợp các ID bài học đã hoàn thành (hỗ trợ đánh dấu trực tiếp)
+  const [completedIds, setCompletedIds] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
     const set = new Set<string>();
     for (const l of allLessons) {
       if (isLessonNodeCompleted(l)) {
         set.add(String(l.id));
       }
     }
-    return set;
+    setCompletedIds(set);
   }, [allLessons]);
 
-  // Hàm kiểm tra bài học có được mở khóa không (khóa tuần tự nghiêm ngặt)
-  const isLessonUnlocked = (lessonId: string): boolean => {
-    const idStr = String(lessonId);
-    const idx = allLessons.findIndex((l: any) => String(l.id) === idStr);
-    if (idx <= 0) return true; // Bài đầu tiên luôn mở
-    const prevLesson = allLessons[idx - 1];
-    return completedIds.has(String(prevLesson.id));
+  const handleToggleComplete = async (lessonId: string, nextCompleted: boolean) => {
+    setCompletedIds((prev) => {
+      const next = new Set(prev);
+      if (nextCompleted) {
+        next.add(String(lessonId));
+      } else {
+        next.delete(String(lessonId));
+      }
+      return next;
+    });
+
+    if (!user?.id) return;
+    try {
+      await fetch('/api/progress', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user.id,
+          lessonId,
+          completed: nextCompleted,
+        }),
+      });
+    } catch {
+      // ignore
+    }
   };
 
   const firstLessonId = allLessons[0]?.id;
   const nextUpLesson =
-    allLessons.find((l: any) => !completedIds.has(String(l.id)) && isLessonUnlocked(String(l.id))) ||
+    allLessons.find((l: any) => !completedIds.has(String(l.id))) ||
     allLessons[0];
 
   if (loading) {
@@ -471,17 +488,17 @@ export default function CourseDetailPage() {
           </div>
         )}
 
-        {/* Banner Lưu ý mở khóa bài học tuần tự */}
-        <div className="p-4 rounded-xl bg-amber-50/90 border border-amber-200 flex items-start gap-3 shadow-2xs">
-          <div className="w-8 h-8 rounded-lg bg-amber-100 border border-amber-200 flex items-center justify-center text-amber-700 shrink-0 mt-0.5">
-            <AlertCircle className="w-4 h-4" />
+        {/* Banner Hướng dẫn đánh dấu bài học */}
+        <div className="p-4 rounded-xl bg-emerald-50/80 border border-emerald-200 flex items-start gap-3 shadow-2xs">
+          <div className="w-8 h-8 rounded-lg bg-emerald-100 border border-emerald-200 flex items-center justify-center text-emerald-700 shrink-0 mt-0.5">
+            <CheckCircle2 className="w-4 h-4" />
           </div>
           <div className="space-y-0.5 text-xs">
-            <h4 className="font-bold text-amber-900 flex items-center gap-1.5">
-              <span>Quy tắc mở khóa tuần tự:</span>
+            <h4 className="font-bold text-emerald-900 flex items-center gap-1.5">
+              <span>Đã mở khóa toàn bộ bài học:</span>
             </h4>
-            <p className="text-amber-800 leading-relaxed">
-              Bạn cần học xong bài trước đó và bấm <strong>&quot;Đánh dấu đã học xong ✓&quot;</strong> thì bài học tiếp theo mới được mở khóa. Các bài sau sẽ hiển thị trạng thái <strong>Khóa</strong> cho đến khi hoàn thành bài liền trước.
+            <p className="text-emerald-800 leading-relaxed">
+              Tất cả các bài học đều đã được mở sẵn. Học xong bài nào, bạn chỉ cần bấm nút <strong>&quot;✓ Đánh dấu&quot;</strong> để bài đó chuyển sang <strong>màu xanh lá</strong> giúp dễ dàng quản lý tiến độ học tập.
             </p>
           </div>
         </div>
@@ -499,7 +516,7 @@ export default function CourseDetailPage() {
                   node={item}
                   courseId={course.id}
                   completedIds={completedIds}
-                  isLessonUnlocked={isLessonUnlocked}
+                  onToggleComplete={handleToggleComplete}
                   depth={0}
                 />
               );
@@ -542,7 +559,7 @@ export default function CourseDetailPage() {
                         node={childNode}
                         courseId={course.id}
                         completedIds={completedIds}
-                        isLessonUnlocked={isLessonUnlocked}
+                        onToggleComplete={handleToggleComplete}
                         depth={1}
                       />
                     ))}

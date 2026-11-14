@@ -62,19 +62,19 @@ function countLessonsRecursive(node: any): number {
   return count;
 }
 
-// Component hiển thị sidebar đệ quy đa cấp
+// Component hiển thị sidebar đệ quy đa cấp (Mở khóa toàn bộ + Đánh dấu xanh)
 function SidebarTreeNode({
   node,
   courseId,
   currentLessonId,
   completedIds,
-  isLessonUnlocked,
+  onToggleLesson,
 }: {
   node: any;
   courseId: string;
   currentLessonId: string;
   completedIds: Set<string>;
-  isLessonUnlocked: (id: string) => boolean;
+  onToggleLesson: (lessonId: string, nextState: boolean) => void;
 }) {
   const [isOpen, setIsOpen] = useState(true);
   const isFolder = isNodeFolder(node);
@@ -112,7 +112,7 @@ function SidebarTreeNode({
                 courseId={courseId}
                 currentLessonId={currentLessonId}
                 completedIds={completedIds}
-                isLessonUnlocked={isLessonUnlocked}
+                onToggleLesson={onToggleLesson}
               />
             ))}
           </div>
@@ -121,33 +121,61 @@ function SidebarTreeNode({
     );
   }
 
-  // 2. NẾU LÀ FILE
+  // 2. NẾU LÀ FILE - TẤT CẢ ĐỀU MỞ KHÓA, ĐÁNH DẤU HIỂN THỊ MÀU XANH
   const isCurrent = String(node.id) === String(currentLessonId);
   const isDone = completedIds.has(String(node.id));
-  const isUnlocked = isLessonUnlocked(String(node.id));
   const isExternal = node.url && !isVideoLink(node.url);
 
-  // ĐANG HỌC
+  // BÀI ĐANG MỞ XEM
   if (isCurrent) {
     return (
-      <div className="bg-blue-50/80 border-l-4 border-blue-600 border-y border-r border-blue-200 rounded-r-lg p-3 shadow-xs transition-all">
+      <div
+        className={`border-l-4 border-y border-r rounded-r-lg p-3 shadow-xs transition-all ${
+          isDone
+            ? 'bg-emerald-50/90 border-l-emerald-600 border-emerald-300'
+            : 'bg-blue-50/80 border-l-blue-600 border-blue-200'
+        }`}
+      >
         <div className="flex items-start gap-2.5">
-          <span className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center shrink-0 mt-0.5 shadow-xs">
-            <Play className="w-2.5 h-2.5 fill-current ml-0.5" />
-          </span>
+          <button
+            type="button"
+            onClick={() => onToggleLesson(String(node.id), !isDone)}
+            title={isDone ? 'Bỏ đánh dấu đã học' : 'Đánh dấu đã học (chuyển màu xanh)'}
+            className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5 shadow-xs cursor-pointer transition-colors ${
+              isDone ? 'bg-emerald-600 text-white' : 'bg-blue-600 text-white hover:bg-emerald-600'
+            }`}
+          >
+            {isDone ? (
+              <CheckCircle2 className="w-3.5 h-3.5" />
+            ) : (
+              <Play className="w-2.5 h-2.5 fill-current ml-0.5" />
+            )}
+          </button>
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between gap-1 mb-1">
-              <span className="px-1.5 py-0.5 rounded text-[9px] font-bold font-mono tracking-wide uppercase bg-blue-600 text-white">
-                ▶ ĐANG HỌC
+              <span
+                className={`px-1.5 py-0.5 rounded text-[9px] font-bold font-mono tracking-wide uppercase text-white ${
+                  isDone ? 'bg-emerald-600' : 'bg-blue-600'
+                }`}
+              >
+                {isDone ? '✓ ĐANG XEM • ĐÃ HỌC' : '▶ ĐANG HỌC'}
               </span>
               {node.duration && (
-                <span className="text-[10px] font-mono text-blue-700 font-medium">
+                <span
+                  className={`text-[10px] font-mono font-medium ${
+                    isDone ? 'text-emerald-700' : 'text-blue-700'
+                  }`}
+                >
                   {node.duration}
                 </span>
               )}
             </div>
-            <p className="text-xs font-semibold text-blue-950 leading-snug line-clamp-2">
+            <p
+              className={`text-xs font-semibold leading-snug line-clamp-2 ${
+                isDone ? 'text-emerald-950' : 'text-blue-950'
+              }`}
+            >
               {node.title}
             </p>
           </div>
@@ -156,97 +184,69 @@ function SidebarTreeNode({
     );
   }
 
-  // ĐÃ HOÀN THÀNH
+  // ĐÃ ĐÁNH DẤU HOÀN THÀNH (MÀU XANH LÁ NỔI BẬT)
   if (isDone) {
     return (
-      <Link
-        href={`/watch/${courseId}/${node.id}`}
-        className="block p-2.5 rounded-lg bg-emerald-50/50 hover:bg-emerald-50 border border-emerald-200 transition-colors group"
-      >
-        <div className="flex items-start gap-2.5">
-          <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+      <div className="p-2.5 rounded-lg bg-emerald-50/90 hover:bg-emerald-100/80 border border-emerald-300 transition-colors group flex items-start gap-2.5 shadow-2xs">
+        <button
+          type="button"
+          onClick={() => onToggleLesson(String(node.id), false)}
+          title="Bấm để bỏ đánh dấu đã học"
+          className="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0 mt-0.5 cursor-pointer hover:bg-emerald-700 transition-colors"
+        >
+          <CheckCircle2 className="w-3.5 h-3.5" />
+        </button>
 
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center justify-between gap-1 mb-0.5">
-              <span className="text-[10px] font-mono text-emerald-700 font-semibold">
-                ✓ Đã xong
-              </span>
-              {node.duration && (
-                <span className="text-[10px] font-mono text-slate-400">
-                  {node.duration}
-                </span>
-              )}
-            </div>
-            <p className="text-xs text-slate-800 group-hover:text-blue-600 leading-snug line-clamp-2 transition-colors">
-              {node.title}
-            </p>
-          </div>
-        </div>
-      </Link>
-    );
-  }
-
-  // ĐÃ MỞ KHÓA
-  if (isUnlocked) {
-    return (
-      <Link
-        href={`/watch/${courseId}/${node.id}`}
-        className="block p-2.5 rounded-lg bg-white hover:bg-slate-50 border border-slate-200 hover:border-blue-300 transition-colors group shadow-2xs"
-      >
-        <div className="flex items-start gap-2.5">
-          {isExternal ? (
-            <ExternalLink className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
-          ) : (
-            <PlayCircle className="w-4 h-4 text-slate-400 group-hover:text-blue-600 shrink-0 mt-0.5 transition-colors" />
-          )}
-
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center justify-between gap-1 mb-0.5">
-              <span className="text-[10px] font-mono text-slate-400">
-                {isExternal ? 'Tài liệu' : 'Chưa học'}
-              </span>
-              {node.duration && (
-                <span className="text-[10px] font-mono text-slate-400">
-                  {node.duration}
-                </span>
-              )}
-            </div>
-            <p className="text-xs text-slate-700 group-hover:text-blue-600 leading-snug line-clamp-2 transition-colors font-medium">
-              {node.title}
-            </p>
-          </div>
-        </div>
-      </Link>
-    );
-  }
-
-  // ĐANG KHÓA
-  return (
-    <div
-      className="p-2.5 rounded-lg bg-slate-100/70 border border-slate-200 cursor-not-allowed select-none group"
-      title="Cần học xong bài trước và đánh dấu hoàn thành để mở khóa bài này"
-    >
-      <div className="flex items-start gap-2.5">
-        <div className="w-5 h-5 rounded-md bg-slate-200 border border-slate-300 flex items-center justify-center shrink-0 mt-0.5">
-          <Lock className="w-3 h-3 text-slate-500" />
-        </div>
-
-        <div className="flex-1 min-w-0">
+        <Link href={`/watch/${courseId}/${node.id}`} className="flex-1 min-w-0">
           <div className="flex items-center justify-between gap-1 mb-0.5">
-            <span className="text-[10px] font-mono text-slate-600 font-medium">
-              Chưa mở khóa
+            <span className="text-[10px] font-mono text-emerald-700 font-bold">
+              ✓ Đã học xong
             </span>
             {node.duration && (
-              <span className="text-[10px] font-mono text-slate-500">
+              <span className="text-[10px] font-mono text-emerald-600">
                 {node.duration}
               </span>
             )}
           </div>
-          <p className="text-xs text-slate-700 font-medium leading-snug line-clamp-2">
+          <p className="text-xs font-semibold text-emerald-950 group-hover:text-emerald-700 leading-snug line-clamp-2 transition-colors">
             {node.title}
           </p>
-        </div>
+        </Link>
       </div>
+    );
+  }
+
+  // CHƯA ĐÁNH DẤU (MỞ KHÓA SẴN)
+  return (
+    <div className="p-2.5 rounded-lg bg-white hover:bg-slate-50 border border-slate-200 hover:border-blue-300 transition-colors group shadow-2xs flex items-start gap-2.5">
+      <button
+        type="button"
+        onClick={() => onToggleLesson(String(node.id), true)}
+        title="Bấm để đánh dấu đã học (chuyển màu xanh)"
+        className="w-5 h-5 rounded-full bg-slate-100 hover:bg-emerald-50 border border-slate-300 hover:border-emerald-500 text-slate-400 hover:text-emerald-600 flex items-center justify-center shrink-0 mt-0.5 cursor-pointer transition-colors"
+      >
+        {isExternal ? (
+          <ExternalLink className="w-3 h-3" />
+        ) : (
+          <PlayCircle className="w-3.5 h-3.5" />
+        )}
+      </button>
+
+      <Link href={`/watch/${courseId}/${node.id}`} className="flex-1 min-w-0">
+        <div className="flex items-center justify-between gap-1 mb-0.5">
+          <span className="text-[10px] font-mono text-slate-400">
+            {isExternal ? 'Tài liệu' : 'Chưa đánh dấu'}
+          </span>
+          {node.duration && (
+            <span className="text-[10px] font-mono text-slate-400">
+              {node.duration}
+            </span>
+          )}
+        </div>
+        <p className="text-xs text-slate-700 group-hover:text-blue-600 leading-snug line-clamp-2 transition-colors font-medium">
+          {node.title}
+        </p>
+      </Link>
     </div>
   );
 }
@@ -334,27 +334,14 @@ export function WatchLessonClient({
   const progressPercent =
     totalLessons > 0 ? Math.round((completedCount / totalLessons) * 100) : 0;
 
-  // Quy tắc mở khóa tuần tự:
-  const isLessonUnlocked = (lessonId: string): boolean => {
-    const idStr = String(lessonId);
-    const idx = allLessonsFlat.findIndex((l) => String(l.id) === idStr);
-    if (idx <= 0) return true;
-    const prev = allLessonsFlat[idx - 1];
-    return completedIds.has(String(prev.id));
-  };
-
-  const isCurrentLessonUnlocked = isLessonUnlocked(currentLesson.id);
-  const isNextLessonUnlocked = nextLesson ? isLessonUnlocked(nextLesson.id) : false;
-
-  const handleToggleCompleted = async () => {
-    const nextState = !isCompleted;
-
+  // Mở khóa toàn bộ bài học và hỗ trợ đánh dấu xanh bất kỳ bài nào
+  const handleToggleLessonById = async (targetLessonId: string, nextState: boolean) => {
     setCompletedIds((prev) => {
       const nextSet = new Set(prev);
       if (nextState) {
-        nextSet.add(String(currentLesson.id));
+        nextSet.add(String(targetLessonId));
       } else {
-        nextSet.delete(String(currentLesson.id));
+        nextSet.delete(String(targetLessonId));
       }
       return nextSet;
     });
@@ -365,13 +352,17 @@ export function WatchLessonClient({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId: activeUserId,
-          lessonId: currentLesson.id,
+          lessonId: targetLessonId,
           completed: nextState,
         }),
       });
     } catch (e) {
       // ignore
     }
+  };
+
+  const handleToggleCompleted = () => {
+    handleToggleLessonById(String(currentLesson.id), !isCompleted);
   };
 
   const handlePositionUpdate = async (seconds: number) => {
@@ -504,37 +495,15 @@ export function WatchLessonClient({
         {/* Main Stage */}
         <div className="flex-1 overflow-y-auto px-4 py-5 lg:px-8 lg:py-6 flex flex-col items-center custom-scrollbar">
           <div className="w-full max-w-5xl 2xl:max-w-6xl space-y-4">
-            {!isCurrentLessonUnlocked ? (
-              <div className="aspect-video w-full bg-white border border-slate-200 rounded-2xl flex flex-col items-center justify-center p-8 text-center space-y-3 shadow-md">
-                <div className="w-14 h-14 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-500 shadow-xs">
-                  <Lock className="w-7 h-7" />
-                </div>
-                <h2 className="text-lg font-bold text-slate-900">
-                  Bài Học Này Đang Bị Khóa
-                </h2>
-                <p className="text-xs text-slate-500 max-w-md leading-relaxed">
-                  Bạn cần học xong và đánh dấu hoàn thành bài học trước đó để mở khóa bài học này.
-                </p>
-                {prevLesson && (
-                  <Link href={`/watch/${courseId}/${prevLesson.id}`}>
-                    <Button variant="primary" size="sm" className="gap-2 mt-2">
-                      <ChevronLeft className="w-4 h-4" />
-                      Quay lại: {prevLesson.title}
-                    </Button>
-                  </Link>
-                )}
-              </div>
-            ) : (
-              <VideoPlayer
-                url={currentLesson.url}
-                lessonTitle={currentLesson.title}
-                initialPosition={initialLastPosition}
-                onPositionUpdate={handlePositionUpdate}
-                onEnded={() => {
-                  if (!isCompleted) handleToggleCompleted();
-                }}
-              />
-            )}
+            <VideoPlayer
+              url={currentLesson.url}
+              lessonTitle={currentLesson.title}
+              initialPosition={initialLastPosition}
+              onPositionUpdate={handlePositionUpdate}
+              onEnded={() => {
+                if (!isCompleted) handleToggleCompleted();
+              }}
+            />
 
             {/* Video Meta & Control Card */}
             <div className="bg-white border border-slate-200 rounded-2xl p-5 space-y-4 shadow-sm">
@@ -550,7 +519,7 @@ export function WatchLessonClient({
                     {isCompleted ? (
                       <span className="px-2 py-0.5 rounded text-[10px] font-mono text-emerald-700 bg-emerald-50 border border-emerald-200 flex items-center gap-1 font-semibold">
                         <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                        Đã hoàn thành bài học
+                        Đã đánh dấu hoàn thành
                       </span>
                     ) : (
                       <span className="px-2 py-0.5 rounded text-[10px] font-mono text-blue-700 bg-blue-50 border border-blue-200 flex items-center gap-1 font-semibold">
@@ -588,45 +557,21 @@ export function WatchLessonClient({
                     </a>
                   )}
 
-                  {isCurrentLessonUnlocked && (
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
-                      <Button
-                        variant={isCompleted ? 'secondary' : 'primary'}
-                        size="sm"
-                        onClick={handleToggleCompleted}
-                        className={`gap-2 shrink-0 h-9 px-4 text-xs font-semibold cursor-pointer transition-all ${
-                          isCompleted
-                            ? 'bg-emerald-600 hover:bg-emerald-700 text-white border-0 shadow-xs'
-                            : 'bg-blue-600 hover:bg-blue-700 text-white shadow-xs'
-                        }`}
-                      >
-                        <CheckCircle2 className="w-4 h-4 text-white" />
-                        <span>{isCompleted ? 'Đã hoàn thành ✓' : 'Đánh dấu đã học xong'}</span>
-                      </Button>
-                      {!isCompleted && (
-                        <span className="text-[11px] text-amber-700 font-medium bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-md">
-                          ⚡ Đánh dấu bài này để mở khóa bài tiếp theo
-                        </span>
-                      )}
-                    </div>
-                  )}
+                  <Button
+                    variant={isCompleted ? 'secondary' : 'primary'}
+                    size="sm"
+                    onClick={handleToggleCompleted}
+                    className={`gap-2 shrink-0 h-9 px-4 text-xs font-semibold cursor-pointer transition-all ${
+                      isCompleted
+                        ? 'bg-emerald-600 hover:bg-emerald-700 text-white border-0 shadow-xs'
+                        : 'bg-blue-600 hover:bg-blue-700 text-white shadow-xs'
+                    }`}
+                  >
+                    <CheckCircle2 className="w-4 h-4 text-white" />
+                    <span>{isCompleted ? 'Đã học xong ✓ (Bấm để bỏ)' : 'Đánh dấu đã học xong'}</span>
+                  </Button>
                 </div>
               </div>
-
-              {/* Thông báo mở khóa bài tiếp theo */}
-              {isCompleted && nextLesson && (
-                <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-between text-xs animate-in fade-in">
-                  <span className="text-emerald-800 flex items-center gap-2 font-semibold">
-                    <Sparkles className="w-4 h-4 text-emerald-600" />
-                    Tuyệt vời! Bạn đã hoàn thành bài này. Bài tiếp theo đã được mở khóa!
-                  </span>
-                  <Link href={`/watch/${courseId}/${nextLesson.id}`}>
-                    <span className="px-3 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs transition-colors inline-flex items-center gap-1 shadow-xs">
-                      Học ngay <ChevronRight className="w-3.5 h-3.5" />
-                    </span>
-                  </Link>
-                </div>
-              )}
 
               {/* Row 2: Điều hướng */}
               <div className="flex items-center justify-between pt-1 text-xs">
@@ -645,26 +590,15 @@ export function WatchLessonClient({
                   Bài {currentIndex + 1} trên tổng số {totalLessons} bài học
                 </div>
 
-                {nextLesson && (
-                  isNextLessonUnlocked ? (
-                    <Link href={`/watch/${courseId}/${nextLesson.id}`}>
-                      <Button variant="primary" size="sm" className="gap-1.5 h-8 text-xs shadow-xs font-semibold">
-                        <span>Bài tiếp theo</span>
-                        <ChevronRight className="w-3.5 h-3.5" />
-                      </Button>
-                    </Link>
-                  ) : (
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      disabled
-                      className="gap-1.5 h-8 text-xs opacity-50 cursor-not-allowed bg-slate-100 text-slate-400 border-slate-200"
-                      title="Hoàn thành bài này trước để mở khóa bài tiếp theo"
-                    >
-                      <Lock className="w-3 h-3 text-slate-400" />
-                      <span>Bài tiếp theo (Đang khóa)</span>
+                {nextLesson ? (
+                  <Link href={`/watch/${courseId}/${nextLesson.id}`}>
+                    <Button variant="primary" size="sm" className="gap-1.5 h-8 text-xs shadow-xs font-semibold">
+                      <span>Bài tiếp theo</span>
+                      <ChevronRight className="w-3.5 h-3.5" />
                     </Button>
-                  )
+                  </Link>
+                ) : (
+                  <div />
                 )}
               </div>
             </div>
@@ -686,20 +620,20 @@ export function WatchLessonClient({
               </div>
 
               <div className="text-right">
-                <span className="text-xs font-mono font-bold text-blue-700">
-                  {completedCount}/{totalLessons} hoàn thành
+                <span className="text-xs font-mono font-bold text-emerald-700">
+                  {completedCount}/{totalLessons} đã đánh dấu
                 </span>
               </div>
             </div>
 
-            {/* Hộp Chú Ý Quan Trọng Mở Khóa Tuần Tự */}
-            <div className="m-3 p-3 rounded-xl bg-amber-50 border border-amber-200 text-xs shadow-2xs space-y-1">
-              <div className="flex items-center gap-1.5 font-bold text-amber-900">
-                <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
-                <span>Chú ý: Mở khóa tuần tự</span>
+            {/* Hộp hướng dẫn đánh dấu xanh */}
+            <div className="m-3 p-3 rounded-xl bg-emerald-50/80 border border-emerald-200 text-xs shadow-2xs space-y-1">
+              <div className="flex items-center gap-1.5 font-bold text-emerald-900">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span>Đã mở khóa toàn bộ bài học</span>
               </div>
-              <p className="text-[11px] text-amber-800 leading-relaxed">
-                Bạn cần học xong bài trước đó và bấm nút <strong>&quot;Đánh dấu đã học xong ✓&quot;</strong> thì bài học tiếp theo mới được mở khóa.
+              <p className="text-[11px] text-emerald-800 leading-relaxed">
+                Bấm vào biểu tượng tròn ở đầu mỗi bài học hoặc nút <strong>&quot;Đánh dấu đã học xong&quot;</strong> để tô xanh các bài bạn đã hoàn thành.
               </p>
             </div>
 
@@ -713,7 +647,7 @@ export function WatchLessonClient({
                     courseId={courseId}
                     currentLessonId={currentLesson.id}
                     completedIds={completedIds}
-                    isLessonUnlocked={isLessonUnlocked}
+                    onToggleLesson={handleToggleLessonById}
                   />
                 ))
               ) : (
@@ -724,7 +658,7 @@ export function WatchLessonClient({
                     courseId={courseId}
                     currentLessonId={currentLesson.id}
                     completedIds={completedIds}
-                    isLessonUnlocked={isLessonUnlocked}
+                    onToggleLesson={handleToggleLessonById}
                   />
                 ))
               )}
