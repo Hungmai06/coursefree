@@ -2,6 +2,14 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 async function main() {
+  if (process.argv.includes('--if-empty')) {
+    const existingCourses = await prisma.course.count();
+    if (existingCourses > 0) {
+      console.log(`Database already has ${existingCourses} courses. Skipping seed.`);
+      return;
+    }
+  }
+
   console.log('Clearing old data...');
   await prisma.lessonProgress.deleteMany();
   await prisma.courseNode.deleteMany();

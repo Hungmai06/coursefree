@@ -15,7 +15,13 @@ const PORT = process.env.PORT || 5000;
 const ADMIN_EMAIL = 'maivanhung0604@gmail.com';
 const GOOGLE_CLIENT_ID = (process.env.GOOGLE_CLIENT_ID || '').trim();
 const googleAuthClient = new OAuth2Client(GOOGLE_CLIENT_ID);
-const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN || 'http://localhost:3000';
+const FRONTEND_ORIGINS = (
+  process.env.FRONTEND_ORIGIN ||
+  'http://localhost:3000,https://khoahocfree.online,https://www.khoahocfree.online'
+)
+  .split(',')
+  .map((o) => o.trim())
+  .filter(Boolean);
 
 // ===== Phiên đăng nhập: token ký HMAC-SHA256 (không phụ thuộc thư viện ngoài) =====
 const SESSION_SECRET = process.env.SESSION_SECRET || crypto.randomBytes(32).toString('hex');
@@ -104,7 +110,7 @@ app.use((_req, res, next) => {
 });
 
 app.use(cors({
-  origin: [FRONTEND_ORIGIN],
+  origin: FRONTEND_ORIGINS,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
@@ -170,8 +176,10 @@ app.get('/api/auth/me', requireAuth, (req: AuthedRequest, res: Response) => {
   res.json({ user: req.authUser });
 });
 
-// Helper đọc/ghi cấu hình nhóm cộng đồng (lưu vào Backend/community-settings.json)
-const SETTINGS_FILE = path.resolve(__dirname, '../community-settings.json');
+// Helper đọc/ghi cấu hình nhóm cộng đồng (lưu vào Backend/community-settings.json hoặc volume Docker)
+const SETTINGS_FILE = process.env.COMMUNITY_SETTINGS_PATH
+  ? path.resolve(process.env.COMMUNITY_SETTINGS_PATH)
+  : path.resolve(__dirname, '../community-settings.json');
 
 function getCommunitySettings() {
   try {
