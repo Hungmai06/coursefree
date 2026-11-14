@@ -1,0 +1,17 @@
+{
+  "name": "coursefree-workspace",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently -n \"BACKEND,FRONTEND\" -c \"blue,magenta\" \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "cd Backend && npm run dev",
+    "dev:frontend": "cd Frontend && npm run dev",
+    "build": "concurrently \"npm run build:backend\" \"npm run build:frontend\"",
+    "build:backend": "cd Backend && npm run build",
+    "build:frontend": "cd Frontend && npm run build",
+    "seed:backend": "cd Backend && npm run db:seed"
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.7"
+  }
+}

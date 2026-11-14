@@ -1,0 +1,23 @@
+# Dependencies
+node_modules/
+
+# Build output / cache
+.next/
+out/
+dist/
+*.tsbuildinfo
+
+# Secrets & môi trường (KHÔNG commit)
+.env
+.env.*
+!.env.example
+
+# Database & dữ liệu cục bộ
+*.db
+*.db-journal
+Backend/community-settings.json
+
+# Logs / OS
+*.log
+.DS_Store
+Thumbs.db
