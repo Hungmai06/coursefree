@@ -260,7 +260,7 @@ export default function CourseDetailPage() {
           setCourse(await res.json());
         }
       } catch (err) {
-        console.error(err);
+        // ignore
       } finally {
         setLoading(false);
       }

@@ -111,7 +111,7 @@ export default function AdminPage() {
       const res = await fetch('/api/courses');
       if (res.ok) setCourses(await res.json());
     } catch (e) {
-      console.error(e);
+      // ignore
     } finally {
       setLoading(false);
     }
@@ -147,7 +147,7 @@ export default function AdminPage() {
         setTimeout(() => setCommunitySaved(false), 3000);
       }
     } catch (e) {
-      console.error(e);
+      // ignore
     } finally {
       setSavingCommunity(false);
     }
@@ -269,7 +269,7 @@ export default function AdminPage() {
         alert(err.error || 'Có lỗi xảy ra khi tạo khóa học');
       }
     } catch (err) {
-      console.error(err);
+      // ignore
     } finally {
       setIsSubmitting(false);
     }
@@ -283,7 +283,7 @@ export default function AdminPage() {
         loadCourses();
       }
     } catch (err) {
-      console.error(err);
+      // ignore
     }
   };
 
@@ -655,7 +655,7 @@ export default function AdminPage() {
                 )}
                 {!jsonAnalysis && (
                   <p className="text-[11px] text-slate-400">
-                    * Nếu để trống, hệ thống sẽ tự động tạo 1 chương và 1 bài học mẫu để bạn chỉnh sửa sau.
+                    * Có thể dán JSON cấu trúc chương/bài học ngay hoặc để trống để thêm bài học sau.
                   </p>
                 )}
               </div>

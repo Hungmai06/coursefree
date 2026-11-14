@@ -36,7 +36,7 @@ function SearchPageContent() {
         setLessons(data.lessons || []);
       }
     } catch (err) {
-      console.error(err);
+      // ignore
     } finally {
       setLoading(false);
     }

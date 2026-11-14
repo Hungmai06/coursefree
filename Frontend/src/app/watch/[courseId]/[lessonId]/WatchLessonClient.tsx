@@ -370,7 +370,7 @@ export function WatchLessonClient({
         }),
       });
     } catch (e) {
-      console.error(e);
+      // ignore
     }
   };
 

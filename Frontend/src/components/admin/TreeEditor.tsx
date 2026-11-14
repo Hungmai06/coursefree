@@ -127,8 +127,8 @@ export function TreeEditor({ initialTree, onSave, courseTitle }: TreeEditorProps
       id: `new_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
       type,
       title: type === 'chapter' ? 'New Chapter' : type === 'folder' ? 'New Folder' : 'New Video Lesson',
-      url: type === 'lesson' ? 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4' : undefined,
-      duration: type === 'lesson' ? '10:00' : undefined,
+      url: type === 'lesson' ? '' : undefined,
+      duration: type === 'lesson' ? '' : undefined,
       children: type !== 'lesson' ? [] : undefined,
     };
 

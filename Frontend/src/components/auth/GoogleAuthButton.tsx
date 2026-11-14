@@ -27,8 +27,7 @@ export function GoogleAuthButton({ onSuccess, onError }: GoogleAuthButtonProps) 
           }
         }}
         onError={() => {
-          console.error('Google Sign-In failed');
-          alert('Không thể kết nối đến tài khoản Google. Vui lòng kiểm tra lại cấu hình Client ID và Authorized Origins (http://localhost:3000).');
+          alert('Không thể kết nối đến tài khoản Google. Vui lòng kiểm tra lại cấu hình Client ID và Authorized Origins.');
           onError?.();
         }}
         useOneTap={false}

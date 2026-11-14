@@ -28,7 +28,7 @@ export default function DashboardPage() {
         if (cRes.ok) setCourses(await cRes.json());
         if (catRes.ok) setCategories(await catRes.json());
       } catch (e) {
-        console.error(e);
+        // ignore
       } finally {
         setLoading(false);
       }
@@ -50,7 +50,7 @@ export default function DashboardPage() {
           setLastLearningItem(data.lastLesson || null);
         }
       } catch (e) {
-        console.error(e);
+        // ignore
       }
     }
     loadUserHistory();

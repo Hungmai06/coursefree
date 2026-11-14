@@ -100,7 +100,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       return false;
     } catch (err) {
-      console.error('Google credential login error:', err);
       return false;
     }
   };

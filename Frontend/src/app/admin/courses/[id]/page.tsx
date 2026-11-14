@@ -68,7 +68,7 @@ export default function EditCourseCurriculumPage() {
           setChapters(data.tree || []);
         }
       } catch (e) {
-        console.error(e);
+        // ignore
       } finally {
         setLoading(false);
       }
@@ -109,8 +109,8 @@ export default function EditCourseCurriculumPage() {
           id: `les_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
           type: 'lesson',
           title: `Bài ${c.children.length + 1}: Tên bài học mới`,
-          url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
-          duration: '10:00',
+          url: '',
+          duration: '',
         };
         return {
           ...c,
@@ -179,7 +179,7 @@ export default function EditCourseCurriculumPage() {
         setTimeout(() => setSaveSuccess(false), 2500);
       }
     } catch (e) {
-      console.error(e);
+      // ignore
     } finally {
       setIsSaving(false);
     }

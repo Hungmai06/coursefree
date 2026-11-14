@@ -22,5 +22,5 @@ RUN mkdir -p /app/data
 
 EXPOSE 5000
 
-# Tự động đồng bộ schema MySQL, seed dữ liệu lần đầu (nếu DB trống) và khởi chạy server
-CMD ["sh", "-c", "npx prisma db push --skip-generate && node prisma/seed.js --if-empty && node dist/server.js"]
+# Tự động đồng bộ schema MySQL và khởi chạy server
+CMD ["sh", "-c", "npx prisma db push --skip-generate && node dist/server.js"]

@@ -165,7 +165,21 @@ sudo nginx -t
 sudo systemctl reload nginx
 ```
 
-### 6.2 Cài đặt SSL HTTPS miễn phí với Certbot:
+### 6.2 Trỏ tên miền DNS về IP VPS & Cài đặt SSL HTTPS miễn phí với Certbot:
+
+Trước khi chạy Certbot, vào trang quản trị tên miền **`khoahocfree.online`** (Tenten, Nhân Hòa, Matbao, Namecheap, Cloudflare...) và tạo **2 bản ghi DNS**:
+
+| Loại (Type) | Tên (Host / Name) | Giá trị (Value / IPv4) | TTL / Proxy |
+| :--- | :--- | :--- | :--- |
+| **A** | `@` | `161.248.4.83` *(hoặc IP VPS của bạn)* | Auto / Tắt đám mây cam (DNS Only) khi đang lấy SSL |
+| **A** | `www` | `161.248.4.83` *(hoặc IP VPS của bạn)* | Auto / Tắt đám mây cam (DNS Only) khi đang lấy SSL |
+
+Kiểm tra trên VPS xem tên miền đã nhận IP chưa (chờ ~1–5 phút sau khi lưu DNS):
+```bash
+ping -c 2 khoahocfree.online
+```
+
+Khi đã trả về đúng IP VPS, chạy lệnh lấy chứng chỉ SSL HTTPS:
 ```bash
 sudo certbot --nginx -d khoahocfree.online -d www.khoahocfree.online
 ```

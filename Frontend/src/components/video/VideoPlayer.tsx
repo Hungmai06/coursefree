@@ -227,7 +227,7 @@ export function VideoPlayer({
         await videoRef.current.requestPictureInPicture();
       }
     } catch (err) {
-      console.error('PiP error:', err);
+      // ignore
     }
   };
 

@@ -25,9 +25,6 @@ const FRONTEND_ORIGINS = (
 
 // ===== Phiên đăng nhập: token ký HMAC-SHA256 (không phụ thuộc thư viện ngoài) =====
 const SESSION_SECRET = process.env.SESSION_SECRET || crypto.randomBytes(32).toString('hex');
-if (!process.env.SESSION_SECRET) {
-  console.warn('[SECURITY] Chưa đặt SESSION_SECRET trong Backend/.env - phiên đăng nhập sẽ mất khi restart server.');
-}
 const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
 function signSession(userId: string): string {
@@ -166,7 +163,6 @@ app.post('/api/auth/google', loginRateLimit, async (req: Request, res: Response)
       user: { id: user.id, email: user.email, name: user.name, image: user.image, role },
     });
   } catch (error: any) {
-    console.error('Google Auth error:', error);
     return res.status(500).json({ error: 'Đăng nhập Google thất bại' });
   }
 });
@@ -187,15 +183,15 @@ function getCommunitySettings() {
       const raw = fs.readFileSync(SETTINGS_FILE, 'utf-8');
       const parsed = JSON.parse(raw);
       return {
-        zaloUrl: typeof parsed.zaloUrl === 'string' ? parsed.zaloUrl : 'https://zalo.me/g/coursefree',
-        telegramUrl: typeof parsed.telegramUrl === 'string' ? parsed.telegramUrl : 'https://t.me/coursefree',
+        zaloUrl: typeof parsed.zaloUrl === 'string' ? parsed.zaloUrl : '',
+        telegramUrl: typeof parsed.telegramUrl === 'string' ? parsed.telegramUrl : '',
         communityTitle: parsed.communityTitle || 'Nhóm Cộng Đồng Share Khóa Học',
       };
     }
   } catch (e) {}
   return {
-    zaloUrl: 'https://zalo.me/g/coursefree',
-    telegramUrl: 'https://t.me/coursefree',
+    zaloUrl: '',
+    telegramUrl: '',
     communityTitle: 'Nhóm Cộng Đồng Share Khóa Học',
   };
 }
@@ -223,7 +219,6 @@ app.put('/api/config/community', requireAdmin, (req: Request, res: Response) => 
     fs.writeFileSync(SETTINGS_FILE, JSON.stringify(updated, null, 2), 'utf-8');
     return res.json({ success: true, ...updated });
   } catch (error: any) {
-    console.error('Save community settings error:', error);
     return res.status(500).json({ error: 'Không thể lưu cấu hình cộng đồng' });
   }
 });
@@ -250,7 +245,6 @@ app.get('/api/stats', async (req: Request, res: Response) => {
       communityTitle: community.communityTitle,
     });
   } catch (error: any) {
-    console.error('Stats error:', error);
     return res.status(500).json({ error: 'Failed to fetch stats' });
   }
 });
@@ -358,7 +352,6 @@ app.get('/api/courses', async (req: AuthedRequest, res: Response) => {
 
     return res.json(formatted);
   } catch (error: any) {
-    console.error('Fetch courses error:', error);
     return res.status(500).json({ error: 'Failed to load courses' });
   }
 });
@@ -399,7 +392,6 @@ app.get('/api/user/history', requireAuth, async (req: AuthedRequest, res: Respon
       lastLesson,
     });
   } catch (error: any) {
-    console.error('Fetch user history error:', error);
     return res.status(500).json({ error: 'Failed to fetch learning history' });
   }
 });
@@ -514,7 +506,7 @@ app.post('/api/courses', requireAdmin, async (req: Request, res: Response) => {
           parsedTree = parsed.children;
         }
       } catch (e) {
-        console.warn('Lỗi parse JSON cấu trúc khóa học:', e);
+        // ignore invalid json
       }
     }
 
@@ -534,33 +526,10 @@ app.post('/api/courses', requireAdmin, async (req: Request, res: Response) => {
           },
         });
       }
-    } else {
-      // Tạo sẵn 1 chương mặc định và 1 bài học mẫu nếu không nhập JSON
-      const defaultChapter = await prisma.courseNode.create({
-        data: {
-          courseId: course.id,
-          type: 'chapter',
-          title: 'Chương 01: Giới thiệu & Bắt đầu',
-          position: 1,
-        },
-      });
-
-      await prisma.courseNode.create({
-        data: {
-          courseId: course.id,
-          parentId: defaultChapter.id,
-          type: 'lesson',
-          title: 'Bài 1: Tổng quan chương trình học',
-          url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
-          duration: '10:00',
-          position: 1,
-        },
-      });
     }
 
     return res.status(201).json(course);
   } catch (error: any) {
-    console.error('Create course error:', error);
     return res.status(500).json({ error: 'Failed to create course' });
   }
 });
@@ -674,11 +643,8 @@ app.post('/api/progress', requireAuth, async (req: AuthedRequest, res: Response)
 
     return res.json(progress);
   } catch (error: any) {
-    console.error('Save progress error:', error);
     return res.status(500).json({ error: 'Failed to save progress' });
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`CourseFree Minimal Backend running at http://localhost:${PORT}`);
-});
+app.listen(PORT, () => {});

@@ -24,7 +24,7 @@ function CoursesContent() {
         const res = await fetch('/api/categories');
         if (res.ok) setCategories(await res.json());
       } catch (e) {
-        console.error(e);
+        // ignore
       }
     }
     fetchCats();
@@ -46,7 +46,7 @@ function CoursesContent() {
           setCourses(data);
         }
       } catch (err) {
-        console.error(err);
+        // ignore
       } finally {
         setLoading(false);
       }
