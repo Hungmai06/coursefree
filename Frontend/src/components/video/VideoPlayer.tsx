@@ -50,7 +50,16 @@ export function VideoPlayer({
   const [showControls, setShowControls] = useState(true);
   const [showSpeedMenu, setShowSpeedMenu] = useState(false);
   const [hasResumed, setHasResumed] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 767px)');
+    const update = () => setIsMobile(mq.matches);
+    update();
+    mq.addEventListener('change', update);
+    return () => mq.removeEventListener('change', update);
+  }, []);
 
   // Determine video type: youtube, vimeo, google drive file, or direct html5 video
   const cleanUrl = url?.trim() || '';
@@ -261,8 +270,47 @@ export function VideoPlayer({
     );
   }
 
-  // Render Google Drive Video Embed (100% chuẩn định dạng preview phát mượt mà)
+  // Render Google Drive Video / Document
+  // Trên Laptop/Desktop: nhúng trực tiếp iframe preview trên web
+  // Trên Mobile: hiển thị nút mở trực tiếp sang Google Drive (tránh lỗi iframe trên điện thoại)
   if (googleDriveId) {
+    const driveOpenUrl =
+      cleanUrl.startsWith('http://') || cleanUrl.startsWith('https://')
+        ? cleanUrl
+        : `https://drive.google.com/file/d/${googleDriveId}/view`;
+
+    if (isMobile) {
+      return (
+        <div className="w-full bg-white rounded-2xl border border-slate-200 p-5 text-center space-y-4 shadow-sm">
+          <div className="w-12 h-12 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600 mx-auto">
+            <FileText className="w-6 h-6" />
+          </div>
+
+          <div className="space-y-1.5">
+            <span className="text-[10px] font-mono uppercase tracking-wider text-blue-700 bg-blue-50 border border-blue-200 px-2.5 py-0.5 rounded-full inline-block font-semibold">
+              Video / Tài liệu Google Drive
+            </span>
+            <h2 className="text-sm font-bold text-slate-900 leading-snug">
+              {lessonTitle}
+            </h2>
+            <p className="text-xs text-slate-500 leading-relaxed">
+              Trên điện thoại, bấm nút bên dưới để mở trực tiếp video/tài liệu trên Google Drive cho mượt và đầy đủ màn hình.
+            </p>
+          </div>
+
+          <a
+            href={driveOpenUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full py-3 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm flex items-center justify-center gap-2 transition-colors shadow-xs"
+          >
+            <span>Mở trên Google Drive</span>
+            <ExternalLink className="w-4 h-4 shrink-0" />
+          </a>
+        </div>
+      );
+    }
+
     return (
       <div className="relative aspect-video w-full bg-black rounded-lg overflow-hidden border border-[#29292D] shadow-2xl">
         <iframe
@@ -283,32 +331,32 @@ export function VideoPlayer({
       : `https://${cleanUrl}`;
 
     return (
-      <div className="relative aspect-video w-full bg-white rounded-2xl border border-slate-200 flex flex-col items-center justify-center p-6 sm:p-8 text-center space-y-4 shadow-sm animate-in fade-in duration-150">
-        <div className="w-16 h-16 rounded-2xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600 shadow-xs">
-          <ExternalLink className="w-8 h-8" />
+      <div className="relative min-h-[220px] sm:aspect-video w-full bg-white rounded-2xl border border-slate-200 flex flex-col items-center justify-center p-5 sm:p-8 text-center space-y-4 shadow-sm animate-in fade-in duration-150">
+        <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600 shadow-xs">
+          <ExternalLink className="w-6 h-6 sm:w-8 sm:h-8" />
         </div>
 
-        <div className="space-y-2 max-w-lg">
+        <div className="space-y-2 max-w-lg w-full">
           <span className="text-[11px] font-mono uppercase tracking-wider text-blue-700 bg-blue-50 border border-blue-200 px-2.5 py-0.5 rounded-full inline-block font-semibold">
             Tài liệu / Liên kết ngoài
           </span>
-          <h2 className="text-base sm:text-lg font-bold text-slate-900">
+          <h2 className="text-sm sm:text-lg font-bold text-slate-900">
             {lessonTitle}
           </h2>
-          <p className="text-xs text-slate-500 max-w-md line-clamp-1 font-mono bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200 select-all">
+          <p className="text-xs text-slate-500 max-w-md mx-auto truncate font-mono bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200 select-all">
             {formattedUrl}
           </p>
         </div>
 
-        <div className="pt-2">
+        <div className="pt-1 w-full sm:w-auto">
           <a
             href={formattedUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-6 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs transition-all hover:scale-105 shadow-xs cursor-pointer"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs sm:text-sm transition-colors shadow-xs cursor-pointer"
           >
-            <span>Mở liên kết ngay (Redirect)</span>
-            <ExternalLink className="w-4 h-4" />
+            <span>Mở liên kết trên Drive / Trình duyệt</span>
+            <ExternalLink className="w-4 h-4 shrink-0" />
           </a>
         </div>
       </div>

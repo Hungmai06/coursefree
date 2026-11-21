@@ -51,19 +51,6 @@ export function CommunityStatsBar() {
           </div>
 
           <div className="flex items-center gap-2.5 shrink-0 flex-wrap sm:flex-nowrap">
-            {zaloUrl && (
-              <a
-                href={zaloUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-[#0068FF] hover:bg-[#0056d6] text-white font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 transition-colors whitespace-nowrap"
-              >
-                <MessageCircle className="w-4 h-4 shrink-0" />
-                <span>Vào nhóm Zalo</span>
-                <ArrowUpRight className="w-4 h-4 shrink-0 opacity-80" />
-              </a>
-            )}
-
             {telegramUrl && (
               <a
                 href={telegramUrl}
@@ -73,6 +60,19 @@ export function CommunityStatsBar() {
               >
                 <Send className="w-4 h-4 shrink-0" />
                 <span>Vào nhóm Telegram</span>
+                <ArrowUpRight className="w-4 h-4 shrink-0 opacity-80" />
+              </a>
+            )}
+
+            {zaloUrl && (
+              <a
+                href={zaloUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-[#0068FF] hover:bg-[#0056d6] text-white font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 transition-colors whitespace-nowrap"
+              >
+                <MessageCircle className="w-4 h-4 shrink-0" />
+                <span>Vào nhóm Zalo</span>
                 <ArrowUpRight className="w-4 h-4 shrink-0 opacity-80" />
               </a>
             )}
@@ -145,17 +145,6 @@ export function CommunitySidebarCard() {
         </p>
       </div>
       <div className="space-y-1.5">
-        {links.zaloUrl && (
-          <a
-            href={links.zaloUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="w-full px-2.5 py-1.5 rounded-lg bg-[#0068FF] hover:bg-[#0056d6] text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"
-          >
-            <MessageCircle className="w-3.5 h-3.5" />
-            Nhóm Zalo
-          </a>
-        )}
         {links.telegramUrl && (
           <a
             href={links.telegramUrl}
@@ -165,6 +154,17 @@ export function CommunitySidebarCard() {
           >
             <Send className="w-3.5 h-3.5" />
             Nhóm Telegram
+          </a>
+        )}
+        {links.zaloUrl && (
+          <a
+            href={links.zaloUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full px-2.5 py-1.5 rounded-lg bg-[#0068FF] hover:bg-[#0056d6] text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"
+          >
+            <MessageCircle className="w-3.5 h-3.5" />
+            Nhóm Zalo
           </a>
         )}
       </div>

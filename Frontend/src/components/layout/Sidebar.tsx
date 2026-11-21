@@ -10,6 +10,7 @@ import {
   LayoutGrid,
   Sliders,
   BookOpen,
+  Users,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { CommunitySidebarCard } from '@/components/course/CommunityStatsBar';
@@ -108,6 +109,23 @@ export function Sidebar() {
               );
             })}
           </div>
+        </div>
+
+        <div className="pt-2 border-t border-slate-200">
+          <span className="text-[10px] font-mono tracking-wider text-slate-400 px-2.5 uppercase font-semibold block mb-1">
+            KẾT NỐI
+          </span>
+          <Link
+            href="/community"
+            className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
+              pathname.startsWith('/community')
+                ? 'bg-slate-900 text-white font-semibold shadow-xs'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+            }`}
+          >
+            <Users className={`w-4 h-4 shrink-0 ${pathname.startsWith('/community') ? 'text-white' : 'text-slate-400'}`} />
+            <span>Cộng đồng</span>
+          </Link>
         </div>
 
         {isAdmin && (

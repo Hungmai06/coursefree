@@ -191,7 +191,7 @@ sudo certbot --nginx -d khoahocfree.online -d www.khoahocfree.online
 Mỗi khi bạn đẩy code mới lên GitHub (`git push origin main`), chạy 3 lệnh sau trên VPS để cập nhật **không bị mất dữ liệu**:
 
 ```bash
-cd /var/www/coursefree
+cd /var/www/coursefree /// cd ~/coursefree
 git pull origin main
 docker compose up -d --build
 ```

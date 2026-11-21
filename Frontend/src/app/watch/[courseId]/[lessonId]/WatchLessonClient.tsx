@@ -434,9 +434,9 @@ export function WatchLessonClient({
   }
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden bg-slate-100 text-slate-900">
+    <div className="flex flex-col min-h-screen lg:h-screen lg:overflow-hidden bg-slate-100 text-slate-900">
       {/* Top Header Navigation */}
-      <header className="h-14 bg-white border-b border-slate-200 px-4 lg:px-6 flex items-center justify-between shrink-0 select-none z-30 shadow-xs">
+      <header className="h-14 bg-white border-b border-slate-200 px-3 sm:px-4 lg:px-6 flex items-center justify-between shrink-0 select-none sticky top-0 z-30 shadow-xs">
         {/* Left: Back & Course Title */}
         <div className="flex items-center gap-3.5 min-w-0">
           <Link
@@ -491,9 +491,9 @@ export function WatchLessonClient({
       </header>
 
       {/* Main Container */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex flex-col lg:flex-row lg:overflow-hidden">
         {/* Main Stage */}
-        <div className="flex-1 overflow-y-auto px-4 py-5 lg:px-8 lg:py-6 flex flex-col items-center custom-scrollbar">
+        <div className="flex-1 lg:overflow-y-auto px-3 py-4 sm:px-4 sm:py-5 lg:px-8 lg:py-6 flex flex-col items-center custom-scrollbar">
           <div className="w-full max-w-5xl 2xl:max-w-6xl space-y-4">
             <VideoPlayer
               url={currentLesson.url}
@@ -605,9 +605,9 @@ export function WatchLessonClient({
           </div>
         </div>
 
-        {/* Right Sidebar: Danh Sách Bài Học */}
+        {/* Right Sidebar: Danh Sách Bài Học (Xếp bên dưới trên Mobile, bên phải trên Desktop) */}
         {sidebarOpen && (
-          <aside className="w-80 lg:w-96 bg-white border-l border-slate-200 flex flex-col shrink-0 select-none shadow-xs">
+          <aside className="w-full lg:w-96 bg-white border-t lg:border-t-0 lg:border-l border-slate-200 flex flex-col shrink-0 select-none shadow-xs">
             {/* Sidebar Header */}
             <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/70">
               <div className="space-y-0.5 min-w-0">

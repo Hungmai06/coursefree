@@ -11,6 +11,7 @@ import {
   CheckCircle2,
   Gift,
   ChevronDown,
+  Users,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { GoogleAuthButton, GoogleOneTap } from '../auth/GoogleAuthButton';
@@ -90,10 +91,10 @@ export function Header() {
             </span>
           </Link>
 
-          <nav className="hidden md:flex items-center gap-1 text-xs font-medium">
+          <nav className="flex items-center gap-1 text-xs font-medium">
             <Link
               href="/"
-              className={`px-3 py-1.5 rounded-lg transition-colors ${
+              className={`hidden md:inline-flex px-3 py-1.5 rounded-lg transition-colors ${
                 pathname === '/' || pathname.startsWith('/courses')
                   ? 'bg-slate-100 text-slate-900 font-semibold'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
@@ -102,10 +103,22 @@ export function Header() {
               Trang chủ
             </Link>
 
+            <Link
+              href="/community"
+              className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg transition-colors ${
+                pathname.startsWith('/community')
+                  ? 'bg-slate-900 text-white font-semibold'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+              }`}
+            >
+              <Users className="w-3.5 h-3.5" />
+              <span>Cộng đồng</span>
+            </Link>
+
             {isAdmin && (
               <Link
                 href="/admin"
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-colors ${
+                className={`hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-colors ${
                   pathname.startsWith('/admin')
                     ? 'bg-blue-50 text-blue-700 font-semibold border border-blue-200'
                     : 'text-blue-600 hover:bg-blue-50'

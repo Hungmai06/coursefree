@@ -163,14 +163,14 @@ function CourseTreeNode({
 
   return (
     <div
-      className={`p-3 sm:p-3.5 rounded-xl border flex items-center justify-between gap-3 transition-all group ${
+      className={`p-3 sm:p-3.5 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 transition-all group ${
         isDone
           ? 'bg-emerald-50/90 border-emerald-300 shadow-2xs'
           : 'bg-white hover:bg-slate-50 border-slate-200 hover:border-blue-300 shadow-xs'
       }`}
     >
       {/* Icon & Title */}
-      <div className="flex items-center gap-3 min-w-0">
+      <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
         <button
           type="button"
           onClick={() => onToggleComplete(String(node.id), !isDone)}
@@ -194,7 +194,7 @@ function CourseTreeNode({
 
         <Link href={`/watch/${courseId}/${node.id}`} className="min-w-0 flex-1">
           <span
-            className={`text-xs sm:text-sm truncate block transition-colors ${
+            className={`text-xs sm:text-sm line-clamp-2 sm:truncate block transition-colors ${
               isDone
                 ? 'text-emerald-900 font-semibold'
                 : 'text-slate-900 font-medium group-hover:text-blue-600'
@@ -206,7 +206,7 @@ function CourseTreeNode({
       </div>
 
       {/* Button Action: Đánh dấu xanh + Vào học */}
-      <div className="flex items-center gap-2 shrink-0">
+      <div className="flex items-center justify-end gap-2 shrink-0 pl-8 sm:pl-0">
         <button
           type="button"
           onClick={() => onToggleComplete(String(node.id), !isDone)}
