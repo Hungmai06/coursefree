@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { usePathname } from 'next/navigation';
 import { ExternalLink, Sparkles } from 'lucide-react';
+import { useAuth } from '@/lib/auth';
 
 interface ShopeePopupConfig {
   shopeePopupEnabled: boolean;
@@ -24,11 +25,14 @@ export function getTodayDateString(): string {
 
 export function DailyShopeePopup() {
   const pathname = usePathname();
+  const { user, isAuthLoaded } = useAuth();
   const [config, setConfig] = useState<ShopeePopupConfig | null>(null);
   const [isOpen, setIsOpen] = useState(false);
 
   const loadConfigAndCheck = useCallback(
     async (forcePreview = false) => {
+      if (!isAuthLoaded && !forcePreview) return;
+
       try {
         const res = await fetch('/api/config/community', { cache: 'no-store' });
         if (!res.ok) return;
@@ -67,15 +71,34 @@ export function DailyShopeePopup() {
         }
 
         const today = getTodayDateString();
-        const checkedInDate = localStorage.getItem(CHECKIN_STORAGE_KEY);
-        if (checkedInDate !== today) {
-          setIsOpen(true);
+        const localCheckedIn = localStorage.getItem(CHECKIN_STORAGE_KEY) === today;
+
+        // 1. Nếu trên Server đã ghi nhận điểm danh hôm nay (từ Điện thoại hoặc thiết bị khác)
+        if (data.checkedInToday === true) {
+          if (!localCheckedIn) {
+            localStorage.setItem(CHECKIN_STORAGE_KEY, today);
+            window.dispatchEvent(new Event('daily-checkin-completed'));
+          }
+          setIsOpen(false);
+          return;
         }
+
+        // 2. Nếu thiết bị này đã điểm danh trước khi đăng nhập, tự động đồng bộ lên Server cho tài khoản
+        if (localCheckedIn) {
+          if (user?.id) {
+            fetch('/api/checkin', { method: 'POST' }).catch(() => {});
+          }
+          setIsOpen(false);
+          return;
+        }
+
+        // 3. Chưa điểm danh ở cả thiết bị này lẫn thiết bị khác -> Hiển thị Popup
+        setIsOpen(true);
       } catch {
         // ignore
       }
     },
-    [pathname]
+    [pathname, isAuthLoaded, user?.id]
   );
 
   useEffect(() => {
@@ -101,6 +124,8 @@ export function DailyShopeePopup() {
     const today = getTodayDateString();
     localStorage.setItem(CHECKIN_STORAGE_KEY, today);
     window.dispatchEvent(new Event('daily-checkin-completed'));
+    // Đồng bộ trạng thái đã điểm danh lên Server để thiết bị khác (ĐT / Máy tính) không cần điểm danh lại
+    fetch('/api/checkin', { method: 'POST' }).catch(() => {});
     window.open(config.shopeeUrl, '_blank', 'noopener,noreferrer');
     setIsOpen(false);
   };
@@ -179,7 +204,7 @@ export function DailyShopeePopup() {
             <div className="leading-snug">
               <span className="font-bold text-slate-900">Bước 2: </span>
               <span>
-                Ngay sau khi bấm, <strong>Popup sẽ tự động tắt</strong> và mở khóa toàn bộ khóa học hôm nay để bạn vào học ngay!
+                Ngay sau khi bấm, <strong>Popup sẽ tự động tắt</strong> và đồng bộ trạng thái đã điểm danh trên mọi thiết bị của bạn trong ngày hôm nay!
               </span>
             </div>
           </div>

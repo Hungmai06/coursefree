@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { GoogleOAuthProvider } from '@react-oauth/google';
+import { GoogleOAuthProvider, googleLogout } from '@react-oauth/google';
 
 export const ADMIN_EMAIL = 'maivanhung0604@gmail.com';
 const TOKEN_KEY = 'coursefree_token';
@@ -105,6 +105,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const logout = () => {
+    try {
+      // Tắt tự động đăng nhập One Tap sau khi người dùng chủ động đăng xuất
+      googleLogout();
+    } catch {}
     setUser(null);
     localStorage.removeItem('coursefree_user');
     localStorage.removeItem(TOKEN_KEY);

@@ -16,6 +16,7 @@ dist/
 *.db
 *.db-journal
 Backend/community-settings.json
+Backend/daily-checkins.json
 
 # Logs / OS
 *.log

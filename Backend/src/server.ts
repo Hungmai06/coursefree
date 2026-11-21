@@ -177,6 +177,114 @@ const SETTINGS_FILE = process.env.COMMUNITY_SETTINGS_PATH
   ? path.resolve(process.env.COMMUNITY_SETTINGS_PATH)
   : path.resolve(__dirname, '../community-settings.json');
 
+// File lưu trạng thái điểm danh hàng ngày đồng bộ đa thiết bị (Điện thoại <-> Máy tính)
+const CHECKINS_FILE = path.resolve(path.dirname(SETTINGS_FILE), 'daily-checkins.json');
+
+function getTodayVN(): string {
+  const now = new Date(Date.now() + 7 * 60 * 60 * 1000);
+  return now.toISOString().slice(0, 10);
+}
+
+function extractClientPublicIp(req: Request): string | null {
+  const xff = req.headers['x-forwarded-for'];
+  const raw = Array.isArray(xff)
+    ? xff[0]
+    : typeof xff === 'string'
+    ? xff.split(',')[0]
+    : (req.headers['x-real-ip'] as string) || req.ip || '';
+  const ip = String(raw || '').trim().replace(/^::ffff:/, '');
+  if (!ip) return null;
+  if (
+    ip === '127.0.0.1' ||
+    ip === '::1' ||
+    ip === 'localhost' ||
+    ip.startsWith('10.') ||
+    ip.startsWith('192.168.') ||
+    /^172\.(1[6-9]|2\d|3[0-1])\./.test(ip)
+  ) {
+    return null;
+  }
+  return ip;
+}
+
+interface DailyCheckinStore {
+  date: string;
+  users: string[];
+  ips: string[];
+}
+
+function loadDailyCheckins(): DailyCheckinStore {
+  const today = getTodayVN();
+  try {
+    if (fs.existsSync(CHECKINS_FILE)) {
+      const parsed = JSON.parse(fs.readFileSync(CHECKINS_FILE, 'utf-8'));
+      if (parsed && parsed.date === today) {
+        return {
+          date: today,
+          users: Array.isArray(parsed.users) ? parsed.users : [],
+          ips: Array.isArray(parsed.ips) ? parsed.ips : [],
+        };
+      }
+    }
+  } catch {}
+  return { date: today, users: [], ips: [] };
+}
+
+function saveDailyCheckins(store: DailyCheckinStore) {
+  try {
+    const dir = path.dirname(CHECKINS_FILE);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    fs.writeFileSync(CHECKINS_FILE, JSON.stringify(store, null, 2), 'utf-8');
+  } catch {}
+}
+
+function isRequestCheckedInToday(req: AuthedRequest): boolean {
+  const store = loadDailyCheckins();
+  if (req.authUser) {
+    const uidKey = `uid:${req.authUser.id}`;
+    const emailKey = `email:${req.authUser.email.toLowerCase()}`;
+    if (store.users.includes(uidKey) || store.users.includes(emailKey)) {
+      return true;
+    }
+  }
+  const publicIp = extractClientPublicIp(req);
+  if (publicIp && store.ips.includes(publicIp)) {
+    return true;
+  }
+  return false;
+}
+
+function markRequestCheckedInToday(req: AuthedRequest): string {
+  const store = loadDailyCheckins();
+  let changed = false;
+
+  if (req.authUser) {
+    const uidKey = `uid:${req.authUser.id}`;
+    const emailKey = `email:${req.authUser.email.toLowerCase()}`;
+    if (!store.users.includes(uidKey)) {
+      store.users.push(uidKey);
+      changed = true;
+    }
+    if (!store.users.includes(emailKey)) {
+      store.users.push(emailKey);
+      changed = true;
+    }
+  }
+
+  const publicIp = extractClientPublicIp(req);
+  if (publicIp && !store.ips.includes(publicIp)) {
+    store.ips.push(publicIp);
+    changed = true;
+  }
+
+  if (changed) {
+    saveDailyCheckins(store);
+  }
+  return store.date;
+}
+
 const DEFAULT_SHOPEE_URL = 'https://shopee.vn/search?keyword=s%C3%A1ch%20ti%E1%BA%BFng%20anh%20cho%20ng%C6%B0%E1%BB%9Di%20b%E1%BA%AFt%20%C4%91%E1%BA%A7u';
 const DEFAULT_SHOPEE_TITLE = 'Ủng Hộ Dự Án';
 const DEFAULT_SHOPEE_DESC =
@@ -223,9 +331,23 @@ function getCommunitySettings() {
   };
 }
 
-// GET /api/config/community
-app.get('/api/config/community', (req: Request, res: Response) => {
-  return res.json(getCommunitySettings());
+// GET /api/config/community (Trả về cấu hình + trạng thái đã điểm danh hôm nay trên thiết bị khác chưa)
+app.get('/api/config/community', (req: AuthedRequest, res: Response) => {
+  return res.json({
+    ...getCommunitySettings(),
+    checkedInToday: isRequestCheckedInToday(req),
+    todayDate: getTodayVN(),
+  });
+});
+
+// POST /api/checkin (Đồng bộ điểm danh hàng ngày lên Server theo Tài khoản Google & IP mạng)
+app.post('/api/checkin', (req: AuthedRequest, res: Response) => {
+  const date = markRequestCheckedInToday(req);
+  return res.json({
+    success: true,
+    checkedInToday: true,
+    date,
+  });
 });
 
 // PUT /api/config/community (Admin cập nhật link nhóm Zalo, Telegram & Popup Điểm Danh Shopee)

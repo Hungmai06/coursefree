@@ -12,6 +12,7 @@ import {
   BookOpen,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
+import { CommunitySidebarCard } from '@/components/course/CommunityStatsBar';
 
 const DEFAULT_CATEGORIES = ['Lập trình', 'Ngoại ngữ', 'Thiết kế'];
 
@@ -129,8 +130,11 @@ export function Sidebar() {
         )}
       </div>
 
-      <div className="p-2 border-t border-slate-100 text-[11px] text-slate-400 font-mono">
-        CourseFree • Light Clean
+      <div className="space-y-3 pt-3">
+        <CommunitySidebarCard />
+        <div className="p-2 border-t border-slate-100 text-[11px] text-slate-400 font-mono">
+          CourseFree • Light Clean
+        </div>
       </div>
     </aside>
   );
